@@ -1,0 +1,6 @@
+*.exe
+*.tpu
+dist
+build
+src/external
+
