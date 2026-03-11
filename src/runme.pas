@@ -24,11 +24,9 @@ asm
   mov ax, 3
   int 33h
   les di, [x]
-  mov es:[di], cx
-  les di, [y]
-  mov es:[di], dx
-  les di, [buttons]
-  mov es:[di], bl
+  mov es:[di], cx     {Store x coordinate}
+  mov es:[di+2], dx   {Store y coordinate}
+  mov es:[di+4], bl   {Store button status}
 end;
 
 
