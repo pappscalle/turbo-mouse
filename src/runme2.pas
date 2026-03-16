@@ -40,6 +40,7 @@ asm
   mov cx,0
   mov dx, SCREEN_HEIGHT - 1
   int 33h
+
 end;
 
 procedure GetMouseStatus(var x, y: word; var buttons: byte); assembler;
@@ -85,6 +86,21 @@ begin
         SetPixel(x + j, y + i, 0); 
 end;
 
+procedure XorCursor(x, y: word);
+var
+  i, j: integer;  
+  p: word;
+begin
+  for i := 0 to CURSOR_SIZE - 1 do
+    for j := 0 to CURSOR_SIZE - 1 do
+      if cursor[i, j] <> 0 then
+      begin
+        p := (y+i)*320 + (x+j);
+        mem[$A000:p] := mem[$A000:p] xor $0F;
+      end;
+end;
+
+
 begin
 
   OpenGraphics;
@@ -105,8 +121,8 @@ begin
     GetMouseStatus(mouseX, mouseY, mouseButtons);
     mouseX := mouseX shr 1; {Scale down the mouse coordinates to fit the 320x200 resolution}
 
-    DeleteCursor(oldMouseX, oldMouseY);
-    DrawCursor(mouseX, mouseY);
+    XorCursor(oldMouseX, oldMouseY);
+    XorCursor(mouseX, mouseY);
 
     oldMouseX := mouseX;
     oldMouseY := mouseY;
