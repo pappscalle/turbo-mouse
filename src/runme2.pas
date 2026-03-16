@@ -13,28 +13,32 @@ const
   cursor: array[0..CURSOR_SIZE-1, 0..CURSOR_SIZE-1] of byte = 
   ((0,0,0,0,0,0,0,0),
    (0,1,1,1,1,1,1,0),
+   (0,1,1,1,1,1,0,0),
+   (0,1,1,1,1,0,0,0),
+   (0,1,1,1,1,0,0,0),
+   (0,1,1,0,0,1,0,0),
    (0,1,0,0,0,0,1,0),
-   (0,1,0,0,0,0,1,0),
-   (0,1,0,0,0,0,1,0),
-   (0,1,0,0,0,0,1,0),
-   (0,1,1,1,1,1,1,0),
    (0,0,0,0,0,0,0,0));
 
 var 
   mouseX, mouseY : word;
   mouseButtons : byte;
-
-
+  oldMouseX, oldMouseY : word;
 
 
 function InitMouse: word; assembler;
 asm
-  mov ax, 0
+  mov ax,0
   int 33h
 
-  mov ax, 7
-  mov cx, 0
-  mov dx, SCREEN_WIDTH-1
+  mov ax,7
+  mov cx,0
+  mov dx, SCREEN_WIDTH * 2 - 1
+  int 33h
+
+  mov ax,8
+  mov cx,0
+  mov dx, SCREEN_HEIGHT - 1
   int 33h
 end;
 
@@ -42,26 +46,13 @@ procedure GetMouseStatus(var x, y: word; var buttons: byte); assembler;
 asm
   mov ax, 3
   int 33h
-  les di, [x]
-  mov es:[di], cx     {Store x coordinate}
-  mov es:[di+2], dx   {Store y coordinate}
-  mov es:[di+4], bl   {Store button status}
+  lds di, [x]
+  mov ds:[di], cx   {Store x coordinate}
+  lds di, [y]
+  mov ds:[di], dx   {Store y coordinate}
+  lds di, [buttons]
+  mov ds:[di], bl   {Store button status}
 end;
-
-
-procedure HideCursor; assembler;
-asm
-  mov ax, 2
-  int 33h
-end;
-
-procedure ShowCursor; assembler;
-asm
-  mov ax, 1
-  int 33h
-end;
-
-
 
 function LeftButtonPressed: boolean;
 begin
@@ -105,10 +96,20 @@ begin
     halt(1);
   end;
 
-  HideCursor;
+
+
+  oldMouseX := 0;
+  oldMouseY := 0;
 
   repeat
     GetMouseStatus(mouseX, mouseY, mouseButtons);
+    mouseX := mouseX shr 1; {Scale down the mouse coordinates to fit the 320x200 resolution}
+
+    DeleteCursor(oldMouseX, oldMouseY);
+    DrawCursor(mouseX, mouseY);
+
+    oldMouseX := mouseX;
+    oldMouseY := mouseY;
 
     if LeftButtonPressed then
       SetPixel(mouseX, mouseY, 15); {Draw a pixel when the left mouse button is pressed}
@@ -117,7 +118,6 @@ begin
 
   until RightButtonPressed; {Exit when the right mouse button is pressed}
 
-  ShowCursor;
   CloseGraphics;
 
 end.
