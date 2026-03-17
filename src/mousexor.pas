@@ -1,4 +1,4 @@
-program Runme;
+program XorMouseCursor;
 
 {$G+}
 
@@ -28,16 +28,16 @@ var
 
 function InitMouse: word; assembler;
 asm
-  mov ax,0
+  mov ax, 0
   int 33h
 
-  mov ax,7
-  mov cx,0
+  mov ax, 7
+  mov cx, 0
   mov dx, SCREEN_WIDTH * 2 - 1
   int 33h
 
-  mov ax,8
-  mov cx,0
+  mov ax, 8
+  mov cx, 0
   mov dx, SCREEN_HEIGHT - 1
   int 33h
 
@@ -66,38 +66,43 @@ begin
 end;
 
 
-procedure DrawCursor(x, y: word);
-var
-  i, j: integer;    
-begin
-  for i := 0 to CURSOR_SIZE - 1 do
-    for j := 0 to CURSOR_SIZE - 1 do
-      if cursor[i, j] <> 0 then
-        SetPixel(x + j, y + i, cursor[i, j]); 
-end;
+procedure XorCursor(x, y: word); assembler;
+asm
 
-procedure DeleteCursor(x, y: word);
-var
-  i, j: integer;    
-begin
-  for i := 0 to CURSOR_SIZE - 1 do
-    for j := 0 to CURSOR_SIZE - 1 do
-      if cursor[i, j] = 1 then
-        SetPixel(x + j, y + i, 0); 
-end;
+  mov  si, offset cursor
 
-procedure XorCursor(x, y: word);
-var
-  i, j: integer;  
-  p: word;
-begin
-  for i := 0 to CURSOR_SIZE - 1 do
-    for j := 0 to CURSOR_SIZE - 1 do
-      if cursor[i, j] <> 0 then
-      begin
-        p := (y+i)*320 + (x+j);
-        mem[$A000:p] := mem[$A000:p] xor $0F;
-      end;
+  les  di, ScreenTarget
+  mov  ax, [y] 
+  mov  dx, ax
+  shl  ax, 2
+  add  ax, dx
+  shl  ax, 6
+  add  ax, [x]
+  add  di, ax
+
+  mov  cx, CURSOR_SIZE
+
+@xorLoop:
+  push cx
+  mov  cx, CURSOR_SIZE
+
+@xorInnerLoop:
+  lodsb
+  test al, al
+  jz   @skipPixel
+
+  mov  ax, [es:di]
+  xor  ax, 0Fh
+  mov  [es:di], ax
+
+@skipPixel:
+  inc  di
+  loop @xorInnerLoop
+  add  di, SCREEN_WIDTH - CURSOR_SIZE
+
+  pop  cx
+  loop @xorLoop
+
 end;
 
 
@@ -111,8 +116,6 @@ begin
     writeln('Mouse not detected!');
     halt(1);
   end;
-
-
 
   oldMouseX := 0;
   oldMouseY := 0;
