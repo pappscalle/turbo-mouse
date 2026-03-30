@@ -4,13 +4,8 @@ program Runme;
 
 uses crt, gfx, mouse;
 
-const
-  LEFT_BUTTON = 1;
-  RIGHT_BUTTON = 2;
-
 var 
   mouseX, mouseY : word;
-
 
 begin
 

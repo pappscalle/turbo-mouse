@@ -4,17 +4,16 @@ unit Mouse;
 
 interface
 
-
-const
-  LEFT_BUTTON = 1;
-  RIGHT_BUTTON = 2;
-
 function InitMouse: word; 
 procedure GetMouseStatus(var x, y: word);
 function LeftButtonPressed: boolean;
 function RightButtonPressed: boolean;
 
 implementation
+
+const
+  LEFT_BUTTON = 1;
+  RIGHT_BUTTON = 2;
 
 var 
   mouseButtons : byte;
@@ -33,7 +32,6 @@ asm
   mov  cx, 0
   mov  dx, 199
   int  33h
-
 end;
 
 
