@@ -22,6 +22,7 @@ function InitMouse: word; assembler;
 asm
   mov  ax, 0
   int  33h
+  push ax  {Save the result to return later}
 
   mov  ax, 7
   mov  cx, 0
@@ -32,6 +33,7 @@ asm
   mov  cx, 0
   mov  dx, 199
   int  33h
+  pop  ax  {Return the result of mouse initialization}
 end;
 
 
